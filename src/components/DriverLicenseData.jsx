@@ -56,7 +56,7 @@ const DriverLicenseData = () => {
   });
 
   const onSubmit = data => {
-    console.log('Дані форми:', data);
+   
     dispatch(setDriverLicense(data.licenses));
     dispatch(nextStep());
   };

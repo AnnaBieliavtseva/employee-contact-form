@@ -64,7 +64,6 @@ const EmployeeData = () => {
   });
 
   const onSubmit = data => {
-    console.log(data);
     dispatch(setEmployeeData(data));
     dispatch(nextStep());
   };
@@ -237,7 +236,6 @@ const EmployeeData = () => {
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
             sx={{ margin: '0 auto', width: { md: '50%' } }}
-           
           >
             Завантажити файл
             <VisuallyHiddenInput
