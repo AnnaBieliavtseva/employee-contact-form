@@ -38,7 +38,7 @@ const schema = z.object({
   id: z.string().default(() => crypto.randomUUID()),
   firstName: z.string().min(2, "Ім'я занадто коротке").trim(),
   lastName: z.string().min(2, 'Прізвище занадто коротке').trim(),
-  dateBirthday: z.string({ required_error: "Обов'якове поле" }),
+  birthday: z.string({ required_error: "Обов'язкове поле" }),
   birthdayLocation: z.string().min(2, "Обов'язкове поле").trim(),
   phone: z
     .string()
@@ -48,7 +48,7 @@ const schema = z.object({
   taxNumber: z.string().length(10, 'Ідентифікаційний код має 10 цифр'),
   hasCrime: z.boolean(),
   hasBankCredits: z.boolean(),
-  photoUrl: z.string(),
+  photoUrl: z.string({ required_error: "Обов'язково завантажте фото" }),
 });
 
 const EmployeeData = () => {
@@ -84,14 +84,6 @@ const EmployeeData = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Typography
-        variant="h3"
-        textAlign="center"
-        color="primary.dark"
-        margin="20px 0"
-      >
-        Будь ласка заповніть форму
-      </Typography>
       <Box
         component="form"
         onSubmit={handleSubmit(onSubmit)}
@@ -106,6 +98,14 @@ const EmployeeData = () => {
           border: '1px solid gray',
         }}
       >
+        <Typography
+          variant="h3"
+          textAlign="center"
+          color="primary.dark"
+          margin="20px 0"
+        >
+          Будь ласка заповніть особисті дані
+        </Typography>
         <TextField
           label="Ім'я"
           {...register('firstName')}
@@ -119,7 +119,7 @@ const EmployeeData = () => {
           helperText={errors.lastName?.message}
         />
         <Controller
-          name="dateBirthday"
+          name="birthday"
           control={control}
           render={({ field }) => (
             <DatePicker
@@ -132,8 +132,8 @@ const EmployeeData = () => {
               }
               slotProps={{
                 textField: {
-                  error: !!errors.dateBirthday,
-                  helperText: errors.dateBirthday?.message,
+                  error: !!errors.birthday,
+                  helperText: errors.birthday?.message,
                 },
               }}
             />
@@ -237,6 +237,7 @@ const EmployeeData = () => {
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
             sx={{ margin: '0 auto', width: { md: '50%' } }}
+           
           >
             Завантажити файл
             <VisuallyHiddenInput

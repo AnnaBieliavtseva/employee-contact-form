@@ -21,7 +21,7 @@ function App() {
         <>
           {step === 1 && <EmployeeData />}
           {step === 2 && <DriverLicenseData />}
-          {step === 3 && <FamilyData />}
+          {/* {step === 3 && <FamilyData />} */}
         </>
       </Container>
     </ThemeProvider>

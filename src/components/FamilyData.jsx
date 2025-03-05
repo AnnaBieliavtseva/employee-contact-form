@@ -2,31 +2,36 @@ import {
   Button,
   TextField,
   Box,
-  Select,
-  MenuItem,
   InputLabel,
   FormControl,
+  FormControlLabel,
+  Radio,
+  FormLabel,
 } from '@mui/material';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm,  Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch } from 'react-redux';
-import { setFamily,  submitForm } from '../redux/formSlice';
+import { setFamily, submitForm } from '../redux/formSlice';
+import dayjs from 'dayjs';
 import { z } from 'zod';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers';
 
 const schema = z.object({
   familyMembers: z.array(
     z.object({
-      firstName: z.string().min(2, "Ім'я занадто коротке"),
-      lastName: z.string().min(2, 'Прізвище занадто коротке'),
-      birthday: z.string(),
-      birthdayLocation: z.string(),
-      phone: z.string(),
+      id: z.string().default(() => crypto.randomUUID()),
+      firstName: z.string().min(2, "Ім'я занадто коротке").trim(),
+      lastName: z.string().min(2, 'Прізвище занадто коротке').trim(),
+      birthday: z.string({ required_error: "Обов'язкове поле" }),
+      birthdayLocation: z.string().min(2, "Обов'язкове поле").trim(),
+      phone: z
+        .string()
+        .regex(/^\d+$/, 'Будь ласка введіть правильний номер')
+        .length(10, 'Номер телефону має 10 цифр'),
       additionalInfo: z.string(),
       hasCrime: z.boolean(),
       hasBankCredits: z.boolean(),
-      isMilitary: z.boolean(),
-      status: z.string(),
-      type: z.string().optional(),
     })
   ),
 });
@@ -40,30 +45,9 @@ const FamilyData = () => {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: {
-      familyMembers: [
-        {
-          firstName: '',
-          lastName: '',
-          birthday: '',
-          birthdayLocation: '',
-          phone: '',
-          additionalInfo: '',
-          hasCrime: false,
-          hasBankCredits: false,
-          isMilitary: false,
-          status: '',
-          type: '',
-        },
-      ],
-    },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'familyMembers',
-  });
-
+ 
   const onSubmit = data => {
     console.log(data);
     dispatch(setFamily(data.familyMembers));
@@ -71,109 +55,152 @@ const FamilyData = () => {
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-    >
-      {fields.map((field, index) => (
-        <Box
-          key={field.id}
-          sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-        >
-          <TextField
-            label="Ім'я"
-            {...register(`familyMembers.${index}.firstName`)}
-            error={!!errors.familyMembers?.[index]?.firstName}
-            helperText={errors.familyMembers?.[index]?.firstName?.message}
-          />
-          <TextField
-            label="Прізвище"
-            {...register(`familyMembers.${index}.lastName`)}
-            error={!!errors.familyMembers?.[index]?.lastName}
-            helperText={errors.familyMembers?.[index]?.lastName?.message}
-          />
-          <TextField
-            label="Дата народження"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            {...register(`familyMembers.${index}.birthday`)}
-            error={!!errors.familyMembers?.[index]?.birthday}
-            helperText={errors.familyMembers?.[index]?.birthday?.message}
-          />
-          <TextField
-            label="Місце народження"
-            {...register(`familyMembers.${index}.birthdayLocation`)}
-            error={!!errors.familyMembers?.[index]?.birthdayLocation}
-            helperText={
-              errors.familyMembers?.[index]?.birthdayLocation?.message
-            }
-          />
-          <TextField
-            label="Телефон"
-            {...register(`familyMembers.${index}.phone`)}
-            error={!!errors.familyMembers?.[index]?.phone}
-            helperText={errors.familyMembers?.[index]?.phone?.message}
-          />
-          <TextField
-            label="Додаткова інформація"
-            {...register(`familyMembers.${index}.additionalInfo`)}
-            error={!!errors.familyMembers?.[index]?.additionalInfo}
-            helperText={errors.familyMembers?.[index]?.additionalInfo?.message}
-          />
-          <FormControl>
-            <InputLabel>Статус</InputLabel>
-            <Select
-              {...register(`familyMembers.${index}.status`)}
-              error={!!errors.familyMembers?.[index]?.status}
-            >
-              <MenuItem value="active">Активний</MenuItem>
-              <MenuItem value="inactive">Неактивний</MenuItem>
-              <MenuItem value="not-alive">Неживий</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl>
-            <InputLabel>Тип військових</InputLabel>
-            <Select
-              {...register(`familyMembers.${index}.type`)}
-              error={!!errors.familyMembers?.[index]?.type}
-            >
-              <MenuItem value="ARMY">Армія</MenuItem>
-              <MenuItem value="POLICE">Поліція</MenuItem>
-              <MenuItem value="BOARD_FORCES">Прикордонні війська</MenuItem>
-              <MenuItem value="MARINE_FORCES">Морські сили</MenuItem>
-              <MenuItem value="AIR_FORCES">Повітряні сили</MenuItem>
-            </Select>
-          </FormControl>
-          <Button type="button" onClick={() => remove(index)}>
-            Видалити
-          </Button>
-        </Box>
-      ))}
-      <Button
-        type="button"
-        onClick={() =>
-          append({
-            firstName: '',
-            lastName: '',
-            birthday: '',
-            birthdayLocation: '',
-            phone: '',
-            additionalInfo: '',
-            hasCrime: false,
-            hasBankCredits: false,
-            isMilitary: false,
-            status: '',
-            type: '',
-          })
-        }
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Box
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          width: { xs: '100%', sm: '80%', md: '70%', lg: '60%' },
+          gap: 2,
+          margin: '0 auto',
+          padding: '20px 20px',
+          border: '1px solid gray',
+        }}
       >
-        Додати ще члена сім'ї
-      </Button>
-      <Button type="submit" variant="contained">
-        Завершити
-      </Button>
-    </Box>
+        <Typography
+          variant="h3"
+          textAlign="center"
+          color="primary.dark"
+          margin="20px 0"
+        >
+          Будь ласка заповніть дані про членів сім'ї
+        </Typography>
+        <TextField
+          label="Ім'я"
+          {...register('firstName')}
+          error={!!errors.firstName}
+          helperText={errors.firstName?.message}
+        />
+        <TextField
+          label="Прізвище"
+          {...register('lastName')}
+          error={!!errors.lastName}
+          helperText={errors.lastName?.message}
+        />
+        <Controller
+          name="birthday"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              label="Дата народження"
+              disableFuture
+              format="DD-MM-YYYY"
+              value={field.value ? dayjs(field.value) : null}
+              onChange={newValue =>
+                field.onChange(newValue ? newValue.format('DD-MM-YYYY') : '')
+              }
+              slotProps={{
+                textField: {
+                  error: !!errors.birthday,
+                  helperText: errors.birthday?.message,
+                },
+              }}
+            />
+          )}
+        />
+        <TextField
+          label="Місце народження"
+          {...register('birthdayLocation')}
+          error={!!errors.birthdayLocation}
+          helperText={errors.birthdayLocation?.message}
+        />
+        <TextField
+          label="Номер телефону"
+          {...register('phone')}
+          error={!!errors.phone}
+          helperText={errors.phone?.message}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">+38</InputAdornment>
+              ),
+            },
+          }}
+        />
+        <TextField
+          label="Додаткова інфоормація"
+          {...register('additionalInfo')}
+          error={!!errors.additionalInfo}
+          helperText={errors.additionalInfo?.message}
+        />
+
+        <FormControl>
+          <FormLabel>Чи маєте судимості?</FormLabel>
+          <Controller
+            name="hasCrime"
+            control={control}
+            defaultValue={false}
+            render={({ field }) => (
+              <RadioGroup
+                value={field.value ? field.value.toString() : 'false'}
+                onChange={event =>
+                  field.onChange(event.target.value === 'true')
+                }
+              >
+                <FormControlLabel
+                  value="true"
+                  control={<Radio />}
+                  label="Так"
+                />
+                <FormControlLabel
+                  value="false"
+                  control={<Radio />}
+                  label="Ні"
+                />
+              </RadioGroup>
+            )}
+          />
+        </FormControl>
+
+        <FormControl>
+          <FormLabel>Чи маєте кредити?</FormLabel>
+          <Controller
+            name="hasBankCredits"
+            control={control}
+            defaultValue={false}
+            render={({ field }) => (
+              <RadioGroup
+                value={field.value ? field.value.toString() : 'false'}
+                onChange={event =>
+                  field.onChange(event.target.value === 'true')
+                }
+              >
+                <FormControlLabel
+                  value="true"
+                  control={<Radio />}
+                  label="Так"
+                />
+                <FormControlLabel
+                  value="false"
+                  control={<Radio />}
+                  label="Ні"
+                />
+              </RadioGroup>
+            )}
+          />
+        </FormControl>
+        <Button
+          type="submit"
+          variant="contained"
+          sx={{ margin: '0 auto', width: { md: '50%' } }}
+        >
+          Відправити всі дані
+        </Button>
+      </Box>
+    </LocalizationProvider>
   );
 };
 
