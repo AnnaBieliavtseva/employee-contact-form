@@ -127,7 +127,7 @@ const FamilyData = ({ setIsSubmitted }) => {
   });
 
   const onSubmit = data => {
-    console.log('Дані форми:', data);
+    
     dispatch(setFamily(data.familyMembers));
     dispatch(submitForm());
     toast('Дякуємо! Форму успішно відправлено. Можете закрити сторінку.');
